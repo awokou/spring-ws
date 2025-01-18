@@ -20,6 +20,6 @@ public class SpringWsApplication {
 
 	@Bean
 	public CommandLineRunner run() {
-		return args -> bitPayService.persistBitPay();
+		return args -> bitPayService.getHttpClient();
 	}
 }

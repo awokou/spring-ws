@@ -76,26 +76,24 @@ public class BitPayService {
     }
 
     public void getHttpClient() throws IOException {
+        CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpGet request = new HttpGet(baseURL);
-        try (CloseableHttpClient httpClient = HttpClients.createDefault();
-             CloseableHttpResponse response = httpClient.execute(request)) {
-            org.apache.http.HttpEntity entity = response.getEntity();
-            String content = EntityUtils.toString(entity);
-            ObjectMapper mapper = new ObjectMapper();
-            List<BitPay> bitPays = mapper.readValue(content,mapper.getTypeFactory().constructCollectionType(List.class, BitPay.class));
-            persistFileBitPayToJson(bitPays);
-            System.out.println("Reponse 3 : " + content);
-        }
+        CloseableHttpResponse response = httpClient.execute(request);
+        org.apache.http.HttpEntity entity = response.getEntity();
+        String reponseBody = (entity != null) ? EntityUtils.toString(entity) : null;
+        System.out.println("Reponse 3 : " + reponseBody);
+        ObjectMapper mapper = new ObjectMapper();
+        List<BitPay> bitPays = mapper.readValue(reponseBody,mapper.getTypeFactory().constructCollectionType(List.class, BitPay.class));
+        persistFileBitPayToJson(bitPays);
+
+        response.close();
+        httpClient.close();
     }
 
     private void persistFileBitPayToJson(List<BitPay> bitPays) throws IOException {
         File file = new File( path);
         if (file.exists()) {
-            if (file.delete()) {
-                System.out.println("Fichier existant supprimé : " + file.getAbsolutePath());
-            } else {
-                throw new IOException("Impossible de supprimer le fichier existant : " + file.getAbsolutePath());
-            }
+            file.delete();
         }
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
